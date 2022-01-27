@@ -10,11 +10,12 @@ router.post("/", checkInviteToken, async (req, res) => {
     try {
 
         let { invitetoken } = req.headers;
+
         const bytes = CryptoJS.AES.decrypt(invitetoken, process.env.inviteSecret);
         const originalText = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
         const user = await pool.query(
-            "SELECT * FROM users WHERE email = $1",
+            "SELECT invited_to, group_id FROM invites WHERE invited_to = $1",
             [originalText.inviteDetails.email]
         );
 
@@ -51,6 +52,25 @@ router.post("/create-invite", authorization, async (req, res) => {
         );
 
         res.json(newInvitee);
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+router.get("/get-invite", authorization, async (req, res) => {
+
+    const { group_id } = req.headers
+
+    try {
+
+        const invitedTo = await pool.query(
+            "SELECT invited_to FROM invites WHERE group_id = $1",
+            [group_id]
+        );
+
+        res.json(invitedTo.rows);
 
     } catch (err) {
         console.error(err.message);
