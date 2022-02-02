@@ -106,5 +106,36 @@ router.delete("/delete-group", authorization, async (req, res) => {
     }
 });
 
+router.put("/group-user-map", authorization, async (req, res) => {
+    try {
+
+        const { group_id } = req.body
+
+        const groupUserMap = await pool.query(
+            `INSERT
+            INTO    group_user_mapping (user_id, group_id)
+            SELECT  $1, $2
+            WHERE   $1 NOT IN
+                    (
+                    SELECT  user_id
+                    FROM    group_user_mapping
+                    ) RETURNING *`,
+            [req.user_id, group_id]
+        );
+
+        console.log(groupUserMap.rows)
+
+        if (groupUserMap.rows.group_id = group_id) {
+            return res.status(401).send({ error: "User already in group" });
+        }
+
+        res.json(groupUserMap.rows[0]);
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
 
 module.exports = router;

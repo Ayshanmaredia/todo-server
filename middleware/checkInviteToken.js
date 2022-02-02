@@ -11,7 +11,7 @@ module.exports = async (req, res, next) => {
 
     try {
         const invite = await pool.query(
-            "SELECT * FROM invites WHERE token = $1",
+            "SELECT token FROM invites WHERE token = $1",
             [invitetoken]
         );
 

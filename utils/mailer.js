@@ -13,16 +13,16 @@ let transporter = nodemailer.createTransport({
     },
 });
 
-console.log("Message sent: %s", info.messageId);
-
-export function sendEmail() {
+async function sendEmail(email, emailBody) {
 
     let info = await transporter.sendMail({
-        from: '"Fred Foo 👻" <foo@example.com>', // sender address
-        to: "bar@example.com, baz@example.com", // list of receivers
-        subject: "Hello ✔", // Subject line
-        text: "Hello world?", // plain text body
-        html: "<b>Hello world?</b>", // html body
+        from: 'ayshan.maredia@gmail.com',
+        to: email,
+        subject: "Group invitation",
+        // text: "Hello world?",
+        html: emailBody,
     });
 
 }
+
+module.exports = sendEmail;
