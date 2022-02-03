@@ -125,7 +125,7 @@ router.put("/group-user-map", authorization, async (req, res) => {
 
         console.log(groupUserMap.rows)
 
-        if (groupUserMap.rows.group_id = group_id) {
+        if (groupUserMap.rows.group_id === group_id) {
             return res.status(401).send({ error: "User already in group" });
         }
 

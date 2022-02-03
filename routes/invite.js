@@ -16,11 +16,11 @@ router.post("/", checkInviteToken, async (req, res) => {
         const originalText = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
         const user = await pool.query(
-            "SELECT invited_to, group_id FROM invites WHERE invited_to = $1 AND status = 0",
+            "SELECT invited_to, group_id, status FROM invites WHERE invited_to = $1 AND status = 0",
             [originalText.inviteDetails.email]
         );
 
-        res.status(200).json(user.rows);
+        res.status(200).json(user.rows[0]);
 
     } catch (err) {
         console.error(err.message);
@@ -75,11 +75,39 @@ router.get("/get-invite", authorization, async (req, res) => {
     try {
 
         const invitedTo = await pool.query(
-            "SELECT invited_to FROM invites WHERE group_id = $1",
+            "SELECT invited_to FROM invites WHERE group_id = $1 AND status=0",
             [group_id]
         );
 
         res.json(invitedTo.rows);
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+router.post("/update-inviteStatus", authorization, async (req, res) => {
+
+    const { invitetoken } = req.headers;
+
+    try {
+
+        const invite = await pool.query(
+            "SELECT * FROM invites WHERE token = $1",
+            [invitetoken]
+        );
+
+        if (invite.rows.length === 0) {
+            return res.status(401).send({ error: "Invalid token" });
+        }
+
+        const updateStatus = await pool.query(
+            "UPDATE invites SET status = $1 WHERE token = $2 RETURNING *",
+            [1, invitetoken]
+        );
+
+        res.json(invite.rows);
 
     } catch (err) {
         console.error(err.message);
