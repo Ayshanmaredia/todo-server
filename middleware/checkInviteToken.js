@@ -5,6 +5,8 @@ module.exports = async (req, res, next) => {
 
     let { invitetoken } = req.headers;
 
+    invitetoken = encodeURIComponent(invitetoken);
+
     if (!invitetoken) {
         return res.status(500).send("Token not found");
     }
@@ -16,8 +18,9 @@ module.exports = async (req, res, next) => {
         );
 
         if (invite.rows.length === 0) {
-            return res.status(401).send({ error: "Invalid token" });
+            return res.status(401).send("Invalid token");
         }
+
 
         next();
 

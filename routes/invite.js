@@ -4,6 +4,7 @@ const authorization = require("../middleware/authorization");
 const checkInviteToken = require("../middleware/checkInviteToken")
 const CryptoJS = require("crypto-js");
 const sendEmail = require("../utils/mailer");
+const { response } = require("express");
 require("dotenv").config();
 
 router.post("/", checkInviteToken, async (req, res) => {
@@ -11,7 +12,6 @@ router.post("/", checkInviteToken, async (req, res) => {
     try {
 
         let { invitetoken } = req.headers;
-
         const bytes = CryptoJS.AES.decrypt(invitetoken, process.env.inviteSecret);
         const originalText = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
@@ -19,6 +19,10 @@ router.post("/", checkInviteToken, async (req, res) => {
             "SELECT invited_to, group_id, status FROM invites WHERE invited_to = $1 AND status = 0",
             [originalText.inviteDetails.email]
         );
+
+        if (user.rows.length === 0) {
+            res.status(401).send("Not authorized");
+        }
 
         res.status(200).json(user.rows[0]);
 
@@ -42,19 +46,19 @@ router.post("/create-invite", authorization, async (req, res) => {
         //checking if user is Inviting himself
 
         if (userEmail.rows[0].email === email) {
-            return res.status(401).send({ error: "User already exist" });
+            return res.status(401).send("User already exist");
         }
 
         let inviteDetails = { email, group_id }
 
-        const bcryptToken = CryptoJS.AES.encrypt(JSON.stringify({ inviteDetails }), process.env.inviteSecret).toString();
+        const encryptedToken = encodeURIComponent(CryptoJS.AES.encrypt(JSON.stringify({ inviteDetails }), process.env.inviteSecret).toString());
 
         const newInvitee = await pool.query(
             "INSERT INTO invites (token, invited_by, invited_to, group_id) VALUES ($1, $2, $3, $4) RETURNING *",
-            [bcryptToken, req.user_id, email, group_id]
+            [encryptedToken, req.user_id, email, group_id]
         );
 
-        const inviteUrl = process.env.client_url + "/invite?invitetoken=" + bcryptToken;
+        const inviteUrl = process.env.client_url + "/invite?invitetoken=" + encryptedToken;
 
         const emailBody = getEmailBody(email, inviteUrl);
 
@@ -89,7 +93,9 @@ router.get("/get-invite", authorization, async (req, res) => {
 
 router.post("/update-inviteStatus", authorization, async (req, res) => {
 
-    const { invitetoken } = req.headers;
+    let { invitetoken } = req.headers;
+
+    invitetoken = encodeURIComponent(invitetoken);
 
     try {
 
