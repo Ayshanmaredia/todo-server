@@ -91,12 +91,17 @@ router.delete("/delete-group", authorization, async (req, res) => {
         await pool.query(
             "DELETE from group_user_mapping WHERE group_id = $1",
             [id]
-        )
+        );
 
         await pool.query(
             "DELETE FROM groups WHERE id = $1",
             [id]
         );
+
+        await pool.query(
+            "DELETE FROM lists WHERE owner_type_id = $1",
+            [id]
+        )
 
         res.status(200).json("Successfully deleted");
 
