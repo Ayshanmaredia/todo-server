@@ -1,15 +1,13 @@
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 
-// let testAccount = await nodemailer.createTestAccount();
-
 let transporter = nodemailer.createTransport({
-    host: process.env.ses_host,
-    port: 587,
+    host: process.env.host,
+    port: 2525,
     secure: false,
     auth: {
-        user: process.env.ses_user,
-        pass: process.env.ses_password,
+        user: process.env.user,
+        pass: process.env.password,
     },
 });
 
