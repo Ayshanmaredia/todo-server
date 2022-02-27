@@ -8,8 +8,6 @@ app.use(express.json());
 //Routes//
 //register and login routes
 
-app.use(express.static("public"));
-
 app.use("/auth", require("./routes/auth"));
 
 app.use("/dashboard", require("./routes/dashboard"));
@@ -22,6 +20,6 @@ app.use("/invite", require("./routes/invite"));
 
 app.use("/member", require("./routes/member"));
 
-app.listen(process.env.PORT || 5000, () => {
-    console.log("Server is running");
+app.listen(5000, () => {
+    console.log("Server is running on port 5000");
 });
