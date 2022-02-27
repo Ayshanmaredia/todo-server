@@ -43,10 +43,19 @@ router.post("/create-invite", authorization, async (req, res) => {
             [req.user_id]
         );
 
+        const invitedToEmail = await pool.query(
+            "SELECT invited_to FROM invites WHERE invited_to = $1",
+            [email]
+        );
+
+        if (invitedToEmail.rows.length > 0){
+            return res.status(401).send("User already invited");
+        }
+
         //checking if user is Inviting himself
 
         if (userEmail.rows[0].email === email) {
-            return res.status(401).send("User already exist");
+            return res.status(401).send("Cannot invite yourself");
         }
 
         let inviteDetails = { email, group_id }
@@ -64,7 +73,7 @@ router.post("/create-invite", authorization, async (req, res) => {
 
         // await sendEmail(email, emailBody);
 
-        res.json(newInvitee);
+        res.json(newInvitee.rows[0]);
 
     } catch (err) {
         console.error(err.message);
@@ -83,7 +92,7 @@ router.get("/get-invite", authorization, async (req, res) => {
             [group_id]
         );
 
-        res.json(invitedTo.rows);
+        res.status(200).json(invitedTo.rows);
 
     } catch (err) {
         console.error(err.message);
