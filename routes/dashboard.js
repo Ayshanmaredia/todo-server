@@ -11,7 +11,7 @@ router.get("/", authorization, async (req, res) => {
             [req.user_id]
         );
 
-        res.json(user.rows[0]);
+        res.status(200).json(user.rows[0]);
 
     } catch (err) {
         console.error(err.message);

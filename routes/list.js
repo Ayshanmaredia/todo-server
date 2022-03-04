@@ -38,7 +38,7 @@ router.get("/get-lists", authorization, async (req, res) => {
             [owner_type, owner_type_id]
         );
 
-        res.json(lists.rows);
+        res.status(200).json(lists.rows);
 
     } catch (err) {
         console.error(err.message);
@@ -65,7 +65,7 @@ router.put("/update-list", authorization, async (req, res) => {
             [name, description, status, id]
         );
 
-        res.json(updateList.rows[0]);
+        res.status(200).json(updateList.rows[0]);
 
     } catch (err) {
         console.error(err.message);

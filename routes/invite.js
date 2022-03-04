@@ -48,7 +48,7 @@ router.post("/create-invite", authorization, async (req, res) => {
             [email]
         );
 
-        if (invitedToEmail.rows.length > 0){
+        if (invitedToEmail.rows.length > 0) {
             return res.status(401).send("User already invited");
         }
 
@@ -73,7 +73,7 @@ router.post("/create-invite", authorization, async (req, res) => {
 
         // await sendEmail(email, emailBody);
 
-        res.json(newInvitee.rows[0]);
+        res.status(200).json(newInvitee.rows[0]);
 
     } catch (err) {
         console.error(err.message);
@@ -122,7 +122,7 @@ router.post("/update-inviteStatus", authorization, async (req, res) => {
             [1, invitetoken]
         );
 
-        res.json(invite.rows);
+        res.status(200).json(invite.rows);
 
     } catch (err) {
         console.error(err.message);

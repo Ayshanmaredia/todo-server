@@ -19,7 +19,7 @@ router.get("/get-members", authorization, async (req, res) => {
             [group_id]
         );
 
-        res.json(groupMembers.rows);
+        res.status(200).json(groupMembers.rows);
 
     } catch (err) {
         console.error(err.message);

@@ -18,7 +18,7 @@ router.post("/create-group", authorization, async (req, res) => {
             [req.user_id, newGroup.rows[0].id]
         )
 
-        res.json(newGroup.rows[0]);
+        res.status(200).json(newGroup.rows[0]);
 
     } catch (err) {
         console.error(err.message);
@@ -39,7 +39,7 @@ router.get("/get-groups", authorization, async (req, res) => {
             [req.user_id]
         );
 
-        res.json(groups.rows);
+        res.status(200).json(groups.rows);
 
     } catch (err) {
         console.error(err.message);
@@ -66,7 +66,7 @@ router.put("/update-group", authorization, async (req, res) => {
             [name, id]
         );
 
-        res.json(updateGroup.rows[0]);
+        res.status(200).json(updateGroup.rows[0]);
 
     } catch (err) {
         console.error(err.message);
@@ -132,7 +132,7 @@ router.put("/group-user-map", authorization, async (req, res) => {
             return res.status(401).send({ error: "User already in group" });
         }
 
-        res.json(groupUserMap.rows[0]);
+        res.status(200).json(groupUserMap.rows[0]);
 
     } catch (err) {
         console.error(err.message);
