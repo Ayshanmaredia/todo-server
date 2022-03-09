@@ -23,4 +23,15 @@ async function sendEmail(email, emailBody) {
 
 }
 
-module.exports = sendEmail;
+async function sendGroupEmail(email, groupEmailBody) {
+
+    let info = await transporter.sendMail({
+        from: 'ayshan.maredia@gmail.com',
+        to: email,
+        subject: "Added to the group",
+        // text: "Hello world?",
+        html: groupEmailBody,
+    });
+}
+
+module.exports = { sendEmail, sendGroupEmail };

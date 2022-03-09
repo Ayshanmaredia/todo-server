@@ -3,7 +3,7 @@ const pool = require("../db");
 const authorization = require("../middleware/authorization");
 const checkInviteToken = require("../middleware/checkInviteToken")
 const CryptoJS = require("crypto-js");
-const sendEmail = require("../utils/mailer");
+const { sendEmail, sendGroupEmail } = require("../utils/mailer");
 const { response } = require("express");
 require("dotenv").config();
 
@@ -43,6 +43,12 @@ router.post("/create-invite", authorization, async (req, res) => {
             [req.user_id]
         );
 
+        //checking if user is Inviting himself
+
+        if (userEmail.rows[0].email === email) {
+            return res.status(401).send("Cannot invite yourself");
+        }
+
         const invitedToEmail = await pool.query(
             "SELECT invited_to FROM invites WHERE invited_to = $1",
             [email]
@@ -52,11 +58,39 @@ router.post("/create-invite", authorization, async (req, res) => {
             return res.status(401).send("User already invited");
         }
 
-        //checking if user is Inviting himself
+        const existingUser = await pool.query(
+            "SELECT id, email FROM users WHERE email = $1",
+            [email]
+        );
 
-        if (userEmail.rows[0].email === email) {
-            return res.status(401).send("Cannot invite yourself");
+        // For existing users making a seperate group link
+
+        if (existingUser.rows.length > 0) {
+
+            const groupUserMapping = await pool.query(
+                "SELECT user_id, group_id FROM group_user_mapping WHERE user_id = $1 AND group_id = $2",
+                [existingUser.rows[0].id, group_id]
+            );
+        
+            if (groupUserMapping.rows.length > 0) {
+                return res.status(401).send("User already in group");
+            }
+        
+            await pool.query(
+                "INSERT INTO group_user_mapping (user_id, group_id) VALUES ($1, $2) RETURNING *",
+                [existingUser.rows[0].id, group_id]
+            );
+        
+            const groupUrl = process.env.client_url + "/dashboard?owner_type=0&owner_type_id=" + group_id;
+        
+            const groupEmailBody = getGroupEmailBody(email, groupUrl);
+        
+            await sendGroupEmail(email, groupEmailBody);
+
+            return res.status(200).send(existingUser.rows[0]);
         }
+
+        //Make link for new users
 
         let inviteDetails = { email, group_id }
 
@@ -71,7 +105,7 @@ router.post("/create-invite", authorization, async (req, res) => {
 
         const emailBody = getEmailBody(email, inviteUrl);
 
-        // await sendEmail(email, emailBody);
+        await sendEmail(email, emailBody);
 
         res.status(200).json(newInvitee.rows[0]);
 
@@ -130,6 +164,16 @@ router.post("/update-inviteStatus", authorization, async (req, res) => {
     }
 });
 
+//Email body for adding existing users in group
+function getGroupEmailBody(email, groupUrl) {
+    return `
+    <p>Hello ${email}</p>
+    <p>You have been added to the group, <a href="${groupUrl}">here</a> is the link of the group or tab the below link to open it in your app</p>
+    <p>${groupUrl}</p>
+    `
+}
+
+//Email body for adding new users in group
 function getEmailBody(email, inviteUrl) {
     return `
         <p>Hello ${email}</p>
