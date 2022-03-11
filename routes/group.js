@@ -9,13 +9,13 @@ router.post("/create-group", authorization, async (req, res) => {
         const { name } = req.body;
 
         const newGroup = await pool.query(
-            "INSERT INTO groups (name, owner_id) VALUES ($1, $2) RETURNING *",
+            "INSERT INTO groups (name, owner_id) VALUES ($1, $2) RETURNING id as group_id, name, owner_id",
             [name, req.user_id]
         );
 
         await pool.query(
             "INSERT INTO group_user_mapping (user_id, group_id) VALUES ($1, $2) RETURNING *",
-            [req.user_id, newGroup.rows[0].id]
+            [req.user_id, newGroup.rows[0].group_id]
         )
 
         res.status(200).json(newGroup.rows[0]);
