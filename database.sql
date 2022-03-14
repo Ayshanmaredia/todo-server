@@ -1,4 +1,4 @@
-CREATE DATABASE Listicle Board;
+CREATE DATABASE listicleBoard;
 
 
 CREATE TABLE IF NOT EXISTS public.users
