@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const pool = require("../db");
 const authorization = require("../middleware/authorization");
+const logger = require("../loggers/index");
 
 router.get("/", authorization, async (req, res) => {
 
@@ -15,6 +16,7 @@ router.get("/", authorization, async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });

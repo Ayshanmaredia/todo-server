@@ -4,6 +4,8 @@ const bcrypt = require("bcrypt");
 const jwtGenerator = require("../utils/jwtGenerator");
 const validInfo = require("../middleware/validInfo");
 const authorization = require("../middleware/authorization");
+const logger = require("../loggers/index");
+
 //register
 
 router.post("/register", validInfo, async (req, res) => {
@@ -21,6 +23,7 @@ router.post("/register", validInfo, async (req, res) => {
         );
 
         if (user.rows.length !== 0) {
+            logger.error("User already exist");
             return res.status(401).send({ error: "User already exist" });
         }
 
@@ -46,6 +49,7 @@ router.post("/register", validInfo, async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });
@@ -67,6 +71,7 @@ router.post("/login", validInfo, async (req, res) => {
         );
 
         if (user.rows.length === 0) {
+            logger.error("Username/password is incorrect");
             return res.status(401).send({ error: "Username/password is incorrect" });
         }
 
@@ -75,17 +80,18 @@ router.post("/login", validInfo, async (req, res) => {
         const validPassword = await bcrypt.compare(password, user.rows[0].password);
 
         if (!validPassword) {
+            logger.error("Username/password is incorrect");
             return res.status(401).send({ error: "Username/password is incorrect" });
         }
 
         //4. Give them the token
-
         const token = jwtGenerator(user.rows[0].id);
 
         res.json({ token });
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });
@@ -98,6 +104,7 @@ router.get("/is-verify", authorization, async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });

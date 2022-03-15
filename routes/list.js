@@ -2,6 +2,7 @@ const router = require("express").Router();
 const { status } = require("express/lib/response");
 const pool = require("../db");
 const authorization = require("../middleware/authorization");
+const logger = require("../loggers/index");
 
 router.post("/create-list", authorization, async (req, res) => {
 
@@ -21,6 +22,7 @@ router.post("/create-list", authorization, async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });
@@ -42,6 +44,7 @@ router.get("/get-lists", authorization, async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });
@@ -57,6 +60,7 @@ router.put("/update-list", authorization, async (req, res) => {
         );
 
         if (list.rows.length === 0) {
+            logger.error("No Item to update");
             return res.status(401).send({ error: "No Item to update" });
         }
 
@@ -69,6 +73,7 @@ router.put("/update-list", authorization, async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });
@@ -84,6 +89,7 @@ router.delete("/delete-list", authorization, async (req, res) => {
         );
 
         if (list.rows.length === 0) {
+            logger.error("Item not found");
             return res.status(401).send({ error: "Item not found" });
         }
 
@@ -96,6 +102,7 @@ router.delete("/delete-list", authorization, async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });

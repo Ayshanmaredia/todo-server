@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const pool = require("../db");
 const authorization = require("../middleware/authorization");
+const logger = require("../loggers/index");
 
 router.post("/create-group", authorization, async (req, res) => {
 
@@ -22,6 +23,7 @@ router.post("/create-group", authorization, async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });
@@ -43,6 +45,7 @@ router.get("/get-groups", authorization, async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });
@@ -58,6 +61,7 @@ router.put("/update-group", authorization, async (req, res) => {
         );
 
         if (group.rows.length === 0) {
+            logger.error("No group to update");
             return res.status(401).send({ error: "No group to update" });
         }
 
@@ -70,6 +74,7 @@ router.put("/update-group", authorization, async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });
@@ -85,7 +90,8 @@ router.delete("/delete-group", authorization, async (req, res) => {
         );
 
         if (group.rows.length === 0) {
-            return res.status(401).send({ error: "Item not found" });
+            logger.error("Group not found");
+            return res.status(401).send({ error: "Group not found" });
         }
 
         await pool.query(
@@ -107,6 +113,7 @@ router.delete("/delete-group", authorization, async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });
@@ -129,6 +136,7 @@ router.put("/group-user-map", authorization, async (req, res) => {
         );
 
         if (groupUserMap.rows.group_id === group_id) {
+            logger.error("User already in group");
             return res.status(401).send({ error: "User already in group" });
         }
 
@@ -136,6 +144,7 @@ router.put("/group-user-map", authorization, async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });

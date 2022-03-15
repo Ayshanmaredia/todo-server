@@ -5,6 +5,7 @@ const checkInviteToken = require("../middleware/checkInviteToken")
 const CryptoJS = require("crypto-js");
 const { sendEmail, sendGroupEmail } = require("../utils/mailer");
 const { response } = require("express");
+const logger = require("../loggers/index");
 require("dotenv").config();
 
 router.post("/", checkInviteToken, async (req, res) => {
@@ -21,13 +22,15 @@ router.post("/", checkInviteToken, async (req, res) => {
         );
 
         if (user.rows.length === 0) {
-            res.status(401).send("Not authorized");
+            logger.error("Not authorized");
+            return res.status(401).send("Not authorized");
         }
 
         res.status(200).json(user.rows[0]);
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });
@@ -46,6 +49,7 @@ router.post("/create-invite", authorization, async (req, res) => {
         //checking if user is Inviting himself
 
         if (userEmail.rows[0].email === email) {
+            logger.error("Cannot invite yourself");
             return res.status(401).send("Cannot invite yourself");
         }
 
@@ -55,6 +59,7 @@ router.post("/create-invite", authorization, async (req, res) => {
         );
 
         if (invitedToEmail.rows.length > 0) {
+            logger.error("User already invited");
             return res.status(401).send("User already invited");
         }
 
@@ -71,20 +76,21 @@ router.post("/create-invite", authorization, async (req, res) => {
                 "SELECT user_id, group_id FROM group_user_mapping WHERE user_id = $1 AND group_id = $2",
                 [existingUser.rows[0].id, group_id]
             );
-        
+
             if (groupUserMapping.rows.length > 0) {
+                logger.error("User already in group");
                 return res.status(401).send("User already in group");
             }
-        
+
             await pool.query(
                 "INSERT INTO group_user_mapping (user_id, group_id) VALUES ($1, $2) RETURNING *",
                 [existingUser.rows[0].id, group_id]
             );
-        
+
             const groupUrl = process.env.client_url + "/dashboard?owner_type=0&owner_type_id=" + group_id;
-        
+
             const groupEmailBody = getGroupEmailBody(email, groupUrl);
-        
+
             await sendGroupEmail(email, groupEmailBody);
 
             return res.status(200).send(existingUser.rows[0]);
@@ -111,6 +117,7 @@ router.post("/create-invite", authorization, async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });
@@ -130,6 +137,7 @@ router.get("/get-invite", authorization, async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });
@@ -148,6 +156,7 @@ router.post("/update-inviteStatus", authorization, async (req, res) => {
         );
 
         if (invite.rows.length === 0) {
+            logger.error("Invalid token");
             return res.status(401).send({ error: "Invalid token" });
         }
 
@@ -160,6 +169,7 @@ router.post("/update-inviteStatus", authorization, async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        logger.error(err.message);
         res.status(500).send("Server Error");
     }
 });
