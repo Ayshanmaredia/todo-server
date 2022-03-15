@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS public.group_user_mapping
     PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.list
+CREATE TABLE IF NOT EXISTS public.lists
 (
     id serial NOT NULL,
     name character varying(255) NOT NULL,
@@ -67,7 +67,6 @@ ALTER TABLE IF EXISTS public.groups
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
     NOT VALID;
-
 
 ALTER TABLE IF EXISTS public.group_user_mapping
     ADD CONSTRAINT user_id FOREIGN KEY (user_id)
