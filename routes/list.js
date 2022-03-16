@@ -32,7 +32,7 @@ router.get("/get-lists", authorization, async (req, res) => {
     try {
 
         let { owner_type, owner_type_id } = req.headers;
-        if (owner_type == 1) {
+        if (owner_type === 1) {
             owner_type_id = req.user_id;
         }
         const lists = await pool.query(
