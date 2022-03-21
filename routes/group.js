@@ -37,7 +37,8 @@ router.get("/get-groups", authorization, async (req, res) => {
             FROM groups
             LEFT JOIN group_user_mapping
             ON group_user_mapping.group_id = groups.id
-            WHERE group_user_mapping.user_id = $1;`,
+            WHERE group_user_mapping.user_id = $1
+            ORDER BY group_id ASC`,
             [req.user_id]
         );
 
