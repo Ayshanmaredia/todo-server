@@ -8,15 +8,15 @@ router.post("/create-list", authorization, async (req, res) => {
 
     try {
 
-        let { name, owner_type, owner_type_id, description, status } = req.body;
+        let { name, ownertype, ownertypeid, description, status } = req.body;
         
-        if (owner_type === 1) {
-            owner_type_id = req.user_id;
+        if (ownertype === 1) {
+            ownertypeid = req.user_id;
         }
         
         const newList = await pool.query(
             "INSERT INTO lists (name, owner_type, owner_type_id, description, status) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-            [name, owner_type, owner_type_id, description, status]
+            [name, ownertype, ownertypeid, description, status]
         );
 
         res.status(200).json(newList.rows[0]);
@@ -32,12 +32,11 @@ router.get("/get-lists", authorization, async (req, res) => {
 
     try {
 
-        let { owner_type, owner_type_id } = req.headers;
-        
-        console.log(owner_type, owner_type_id)
+        let { ownertype, ownertypeid } = req.headers;
+
         const lists = await pool.query(
             "SELECT * FROM lists WHERE owner_type = $1 AND owner_type_id = $2 ORDER BY id DESC",
-            [owner_type, owner_type_id]
+            [ownertype, ownertypeid]
         );
 
         res.status(200).json(lists.rows);

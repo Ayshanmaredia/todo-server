@@ -42,9 +42,13 @@ router.post("/create-invite", authorization, async (req, res) => {
         const { email, group_id } = req.body;
 
         const userEmail = await pool.query(
-            "SELECT email FROM users WHERE id = $1",
+            "SELECT email, name FROM users WHERE id = $1",
             [req.user_id]
         );
+
+        const senderName = userEmail.rows[0].name;
+
+        console.log(senderName)
 
         //checking if user is Inviting himself
 
@@ -89,7 +93,7 @@ router.post("/create-invite", authorization, async (req, res) => {
 
             const groupUrl = process.env.client_url + "/dashboard?owner_type=0&owner_type_id=" + group_id;
 
-            const groupEmailBody = getGroupEmailBody(email, groupUrl);
+            const groupEmailBody = getGroupEmailBody(email, groupUrl, senderName);
 
             await sendGroupEmail(email, groupEmailBody);
 
@@ -109,7 +113,7 @@ router.post("/create-invite", authorization, async (req, res) => {
 
         const inviteUrl = process.env.client_url + "/invite?invitetoken=" + encryptedToken;
 
-        const emailBody = getEmailBody(email, inviteUrl);
+        const emailBody = getEmailBody(email, inviteUrl, senderName);
 
         await sendEmail(email, emailBody);
 
@@ -175,18 +179,18 @@ router.post("/update-inviteStatus", authorization, async (req, res) => {
 });
 
 //Email body for adding existing users in group
-function getGroupEmailBody(email, groupUrl) {
+function getGroupEmailBody(email, groupUrl, senderName) {
     return `
-    <p>Hello ${email}</p>
-    <p>You have been added to the group, <a href="${groupUrl}">here</a> is the link of the group or tab the below link to open it in your app</p>
+    <p>Hello ${email}, you have been added to the group by ${senderName}</p>
+    <p><a href="${groupUrl}">Here</a> is the link of the group or tab the below link to open it in your app</p>
     <p>${groupUrl}</p>
     `
 }
 
 //Email body for adding new users in group
-function getEmailBody(email, inviteUrl) {
+function getEmailBody(email, inviteUrl, senderName) {
     return `
-        <p>Hello ${email}</p>
+        <p>Hello ${email}, you have been invited to the group by ${senderName}</p>
         <p>Please <a href="${inviteUrl}">Click here</a> or tab the below link to finish joining group invitation.</p>
         <p>${inviteUrl}</p>
     `

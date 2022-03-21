@@ -7,7 +7,7 @@ router.get("/get-members", authorization, async (req, res) => {
 
     try {
 
-        const { group_id } = req.headers;
+        const { groupid } = req.headers;
 
         const groupMembers = await pool.query(
             `SELECT u.name, u.email
@@ -17,7 +17,7 @@ router.get("/get-members", authorization, async (req, res) => {
 			LEFT JOIN users u 
 			ON u.id = gm.user_id
 			WHERE gm.group_id = $1`,
-            [group_id]
+            [groupid]
         );
 
         res.status(200).json(groupMembers.rows);
